@@ -1,0 +1,17 @@
+node_modules/
+package-lock.json
+
+dist/
+build/
+
+.env
+.env.local
+.env.*.local
+
+.vscode/
+*.swp
+*.swo
+
+logs/
+*.log
+npm-debug.log*
