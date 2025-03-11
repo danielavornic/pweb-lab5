@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // the above line is used to run the script as a node script
 
-import { Command } from "commander";
 import chalk from "chalk";
+import { Command } from "commander";
+import { handleUrl } from "./commands/url.js";
 
 const program = new Command();
 
@@ -24,7 +25,7 @@ async function main() {
   try {
     // TODO: implement the commands
     if (options.url) {
-      console.log(chalk.green("URL option selected"));
+      await handleUrl(options.url);
     } else if (options.search) {
       console.log(chalk.green("Search option selected"));
     } else {
@@ -34,7 +35,7 @@ async function main() {
   } catch (error) {
     console.error(
       chalk.red("Error:"),
-      error instanceof Error ? error.message : "An unknown error occurred"
+      error instanceof Error ? error.message : "An error occurred"
     );
     process.exit(1);
   }
