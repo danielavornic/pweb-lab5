@@ -4,6 +4,7 @@
 import chalk from "chalk";
 import { Command } from "commander";
 import { handleUrl } from "./commands/url.js";
+import { handleClearCache } from "./commands/clear-cache.js";
 
 const program = new Command();
 
@@ -15,6 +16,7 @@ program
 program
   .option("-u, --url <url>", "make an HTTP request to the given URL")
   .option("-s, --search <term>", "search term using DuckDuckGo")
+  .option("-c, --clear-cache", "clear the HTTP cache")
   .option("-h, --help", "show help information");
 
 program.parse(process.argv);
@@ -23,15 +25,33 @@ const options = program.opts();
 
 async function main() {
   try {
-    // TODO: implement the commands
+    if (options.clearCache) {
+      handleClearCache();
+      return;
+    }
+
     if (options.url) {
       await handleUrl(options.url);
-    } else if (options.search) {
-      console.log(chalk.green("Search option selected"));
-    } else {
-      // builtin help command
-      program.help();
+      return;
     }
+
+    if (options.search) {
+      // TODO: implement search
+      return;
+    }
+
+    program.help();
+
+    // if (options.clearCache) {
+    //   handleClearCache();
+    // } else if (options.url) {
+    //   await handleUrl(options.url);
+    // } else if (options.search) {
+    //   // TODO: implement search
+    //   console.log(chalk.green("Search option selected"));
+    // } else {
+    //   program.help();
+    // }
   } catch (error) {
     console.error(
       chalk.red("Error:"),

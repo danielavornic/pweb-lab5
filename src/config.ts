@@ -15,4 +15,9 @@ export default {
     engine: "duckduckgo",
     resultsPerPage: 10,
   },
+  cache: {
+    enabled: true,
+    maxAge: 60000, // 1 minute
+    maxSize: 50, // number of cached responses
+  },
 };
