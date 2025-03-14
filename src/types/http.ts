@@ -8,4 +8,5 @@ export interface HttpRequestOptions {
   method?: "GET" | "POST";
   headers?: Record<string, string>;
   path?: string;
+  preferredFormat?: "html" | "json";
 }
