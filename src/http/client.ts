@@ -7,8 +7,16 @@ import {
   ContentFormat,
 } from "../types/http.js";
 import config from "../config.js";
+import { CacheService } from "../services/cache.js";
+import chalk from "chalk";
 
 export class HttpClient {
+  private cacheService: CacheService;
+
+  constructor() {
+    this.cacheService = CacheService.getInstance();
+  }
+
   private buildHeaders(
     hostname: string,
     customHeaders: Record<string, string> = {},
@@ -56,6 +64,17 @@ export class HttpClient {
       throw new Error(
         `Maximum number of redirects (${config.http.maxRedirects}) exceeded`
       );
+    }
+
+    if (
+      (options.method === undefined || options.method === "GET") &&
+      config.cache.enabled
+    ) {
+      const cachedResponse = this.cacheService.get(urlString);
+      if (cachedResponse) {
+        console.log(chalk.green("Using cached response"));
+        return cachedResponse;
+      }
     }
 
     const url = new URL(urlString);
@@ -129,9 +148,19 @@ export class HttpClient {
             )
               .then(resolve)
               .catch(reject);
-          } else {
-            resolve(response);
+            return;
           }
+
+          const isCacheable =
+            (options.method === undefined || options.method === "GET") &&
+            response.statusCode >= 200 &&
+            response.statusCode < 300 &&
+            config.cache.enabled;
+          if (isCacheable) {
+            this.cacheService.set(urlString, response);
+          }
+
+          resolve(response);
         } catch (error) {
           reject(error);
         }
@@ -162,5 +191,9 @@ export class HttpClient {
       headers,
       body,
     };
+  }
+
+  clearCache(): void {
+    this.cacheService.clear();
   }
 }
