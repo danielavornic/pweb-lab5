@@ -13,7 +13,7 @@ export default {
   },
   search: {
     engine: "duckduckgo",
-    resultsPerPage: 10,
+    maxResults: 10,
   },
   cache: {
     enabled: true,
