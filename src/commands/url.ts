@@ -1,13 +1,14 @@
 import { HttpClient } from "../http/client.js";
 import { convert } from "html-to-text";
 import chalk from "chalk";
+import config from "../config.js";
 
 export const handleUrl = async (url: string): Promise<void> => {
   console.log(chalk.blue(`Fetching ${url}...`));
 
   const client = new HttpClient();
   const response = await client.request(url, {
-    preferredFormat: "html",
+    preferredFormat: config.http.defaultPreferredFormat,
   });
 
   if (response.statusCode !== 200) {
@@ -38,7 +39,7 @@ const displayJson = (body: string): void => {
 
 const displayHtml = (body: string): void => {
   const text = convert(body, {
-    wordwrap: 130,
+    wordwrap: config.display.wordWrap,
     selectors: [
       { selector: "img", format: "skip" },
       { selector: "script", format: "skip" },
