@@ -1,13 +1,18 @@
 import * as net from "net";
 import * as tls from "tls";
 import { URL } from "url";
-import { HttpResponse, HttpRequestOptions } from "../types/http.js";
+import {
+  HttpResponse,
+  HttpRequestOptions,
+  ContentFormat,
+} from "../types/http.js";
+import config from "../config.js";
 
 export class HttpClient {
   private buildHeaders(
     hostname: string,
     customHeaders: Record<string, string> = {},
-    preferredFormat?: "html" | "json"
+    preferredFormat?: ContentFormat
   ): Record<string, string> {
     const accept =
       preferredFormat === "json"
@@ -18,8 +23,7 @@ export class HttpClient {
       Host: hostname,
       Connection: "close",
       Accept: accept,
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "User-Agent": config.http.userAgent,
       ...customHeaders,
     };
   }
@@ -48,10 +52,9 @@ export class HttpClient {
     options: HttpRequestOptions = {},
     redirectCount = 0
   ): Promise<HttpResponse> {
-    const MAX_REDIRECTS = 5;
-    if (redirectCount >= MAX_REDIRECTS) {
+    if (redirectCount >= config.http.maxRedirects) {
       throw new Error(
-        `Maximum number of redirects (${MAX_REDIRECTS}) exceeded`
+        `Maximum number of redirects (${config.http.maxRedirects}) exceeded`
       );
     }
 
