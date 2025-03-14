@@ -2,28 +2,30 @@ import { HttpClient } from "../http/client.js";
 import { convert } from "html-to-text";
 import chalk from "chalk";
 
-export async function handleUrl(url: string): Promise<void> {
+export const handleUrl = async (url: string): Promise<void> => {
   console.log(chalk.blue(`Fetching ${url}...`));
 
   const client = new HttpClient();
-  const response = await client.request(url);
+  const response = await client.request(url, {
+    preferredFormat: "html",
+  });
 
   if (response.statusCode !== 200) {
     throw new Error(`Request failed with status code ${response.statusCode}`);
   }
 
-  const contentType = response.headers["content-type"] || "";
+  const [mediaType] = (response.headers["content-type"] || "").split(";");
 
-  if (contentType.includes("application/json")) {
+  if (mediaType.includes("application/json")) {
     displayJson(response.body);
-  } else if (contentType.includes("text/html")) {
+  } else if (mediaType.includes("text/html")) {
     displayHtml(response.body);
   } else {
     console.log(response.body);
   }
-}
+};
 
-function displayJson(body: string): void {
+const displayJson = (body: string): void => {
   try {
     const parsed = JSON.parse(body);
     console.log(chalk.cyan("JSON Response:"));
@@ -32,9 +34,9 @@ function displayJson(body: string): void {
     console.log(chalk.red("Failed to parse JSON response"));
     console.log(body);
   }
-}
+};
 
-function displayHtml(body: string): void {
+const displayHtml = (body: string): void => {
   const text = convert(body, {
     wordwrap: 130,
     selectors: [
@@ -59,4 +61,4 @@ function displayHtml(body: string): void {
 
   console.log(chalk.cyan("HTML Response:"));
   console.log(text);
-}
+};

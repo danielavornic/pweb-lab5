@@ -6,14 +6,20 @@ import { HttpResponse, HttpRequestOptions } from "../types/http.js";
 export class HttpClient {
   private buildHeaders(
     hostname: string,
-    customHeaders: Record<string, string> = {}
+    customHeaders: Record<string, string> = {},
+    preferredFormat?: "html" | "json"
   ): Record<string, string> {
+    const accept =
+      preferredFormat === "json"
+        ? "application/json;q=1.0, text/html;q=0.8"
+        : "text/html;q=1.0, application/json;q=0.8";
+
     return {
       Host: hostname,
       Connection: "close",
-      Accept: "text/html,application/json",
+      Accept: accept,
       "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
       ...customHeaders,
     };
   }
@@ -24,6 +30,11 @@ export class HttpClient {
     search: string,
     headers: Record<string, string>
   ): string[] {
+    // example:
+    // GET / HTTP/1.1
+    // Host: example.com
+    // User-Agent: curl/8.0.1
+    // Accept: */*
     return [
       `${method} ${path || "/"}${search || ""} HTTP/1.1`,
       ...Object.entries(headers).map(([key, value]) => `${key}: ${value}`),
@@ -56,7 +67,11 @@ export class HttpClient {
           });
 
       const sendRequest = () => {
-        const headers = this.buildHeaders(url.hostname, options.headers);
+        const headers = this.buildHeaders(
+          url.hostname,
+          options.headers,
+          options.preferredFormat
+        );
         const requestLines = this.buildRequestLines(
           options.method || "GET",
           url.pathname,
