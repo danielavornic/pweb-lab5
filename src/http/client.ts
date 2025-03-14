@@ -45,18 +45,26 @@ export class HttpClient {
 
   async request(
     urlString: string,
-    options: HttpRequestOptions = {}
+    options: HttpRequestOptions = {},
+    redirectCount = 0
   ): Promise<HttpResponse> {
+    const MAX_REDIRECTS = 5;
+    if (redirectCount >= MAX_REDIRECTS) {
+      throw new Error(
+        `Maximum number of redirects (${MAX_REDIRECTS}) exceeded`
+      );
+    }
+
     const url = new URL(urlString);
     const isHttps = url.protocol === "https:";
-    const port = Number(url.port) || (isHttps ? 443 : 80);
+    const port = url.port ? parseInt(url.port, 10) : isHttps ? 443 : 80;
 
     return new Promise((resolve, reject) => {
       const connectOptions = {
         host: url.hostname,
         port: port,
         servername: url.hostname,
-      } as tls.ConnectionOptions;
+      };
 
       const socket = isHttps
         ? tls.connect(connectOptions, () => {
@@ -89,13 +97,33 @@ export class HttpClient {
       socket.on("end", () => {
         try {
           const response = this.parseResponse(rawResponse);
-          const REDIRECT_CODES = [301, 302, 307, 308];
 
+          const REDIRECT_CODES = [301, 302, 303, 307, 308];
           if (
             REDIRECT_CODES.includes(response.statusCode) &&
             response.headers.location
           ) {
-            this.request(response.headers.location, options)
+            // relative URLs
+            const redirectUrl = new URL(
+              response.headers.location,
+              response.headers.location.startsWith("http")
+                ? undefined
+                : urlString
+            ).toString();
+
+            // change method to GET unless it's 307 or 308
+            const redirectMethod = [307, 308].includes(response.statusCode)
+              ? options.method
+              : "GET";
+
+            this.request(
+              redirectUrl,
+              {
+                ...options,
+                method: redirectMethod,
+              },
+              redirectCount + 1
+            )
               .then(resolve)
               .catch(reject);
           } else {
