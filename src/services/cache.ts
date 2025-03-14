@@ -85,6 +85,11 @@ export class CacheService {
       return;
     }
 
+    const cacheControl = response.headers["cache-control"] || "";
+    if (cacheControl.includes("no-store")) {
+      return;
+    }
+
     if (this.cache.size >= config.cache.maxSize) {
       const oldestKey = this.findOldestEntry();
       if (oldestKey) {
