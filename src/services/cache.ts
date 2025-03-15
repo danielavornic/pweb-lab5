@@ -120,4 +120,8 @@ export class CacheService {
 
     return oldestKey ?? null;
   }
+
+  isEmpty(): boolean {
+    return this.cache.size === 0;
+  }
 }
